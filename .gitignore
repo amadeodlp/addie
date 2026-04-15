@@ -1,0 +1,15 @@
+.env
+node_modules
+dist
+
+# API keys should never be committed — rotate config.json before committing
+config.json
+
+# Knowledge PDFs are large and may be copyrighted — do not commit them.
+# The pre-built index (.index/) IS committed so users get RAG out of the box.
+knowledge/*.pdf
+projects
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

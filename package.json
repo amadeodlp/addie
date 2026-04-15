@@ -1,0 +1,51 @@
+{
+  "name": "addie",
+  "version": "0.1.0",
+  "description": "AI producer assistant for Ableton Live",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.addie.app",
+    "productName": "Addie",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "app/**/*",
+      "ui/**/*",
+      "projects/**/*",
+      "producer.md",
+      "config.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "ui/assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "ui/assets/icon.icns"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2",
+    "node-osc": "^9.1.0",
+    "node-machine-id": "^1.1.12",
+    "openai": "^4.20.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}

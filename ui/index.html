@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Addie</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="themes.js"></script>
+</head>
+<body>
+
+  <!-- ── ONBOARDING ────────────────────────────────────────────── -->
+  <div id="onboarding" class="hidden">
+    <div id="onboarding-inner">
+
+      <div id="ob-logo">addie</div>
+
+      <!-- Step 1: Preferences -->
+      <div class="ob-step" id="ob-step-prefs">
+        <p class="ob-body">Tell me how you work.</p>
+        <p class="ob-body-sm">Pick whatever fits — I'll use this to give better advice from day one. All of it is optional and editable later in Settings.</p>
+
+        <div class="ob-pref-section">
+          <div class="ob-pref-label">GENRE / STYLE <span class="ob-pref-hint">pick as many as you like</span></div>
+          <div class="ob-tags" id="ob-tags-genres"></div>
+          <input type="text" class="ob-text-input" id="ob-pref-genres-custom" placeholder="Other genres, comma-separated (e.g. Cumbia, Afrobeat...)" />
+        </div>
+
+        <div class="ob-pref-section">
+          <div class="ob-pref-label">HOW YOU WORK</div>
+          <div class="ob-tags" id="ob-tags-workflow"></div>
+        </div>
+
+        <div class="ob-pref-section">
+          <div class="ob-pref-label">EXPERIENCE LEVEL</div>
+          <div class="ob-tags" id="ob-tags-level"></div>
+        </div>
+
+        <div class="ob-pref-section">
+          <div class="ob-pref-label">MONITORING</div>
+          <div class="ob-tags" id="ob-tags-monitoring"></div>
+        </div>
+
+        <div class="ob-pref-section">
+          <div class="ob-pref-label">PLUGINS &amp; TOOLS <span class="ob-pref-hint">optional free text</span></div>
+          <input type="text" id="ob-pref-plugins" class="ob-text-input" placeholder="e.g. Serum, FabFilter, Valhalla, Diva..." />
+        </div>
+
+        <div class="ob-pref-section">
+          <div class="ob-pref-label">REFERENCE ARTISTS <span class="ob-pref-hint">optional</span></div>
+          <input type="text" id="ob-pref-references" class="ob-text-input" placeholder="e.g. Burial, Charlotte de Witte, Metro Boomin..." />
+        </div>
+
+        <div class="ob-actions">
+          <button class="ob-btn-primary" id="ob-prefs-next-btn">Continue</button>
+          <button class="ob-btn-ghost" id="ob-prefs-skip-btn">Skip for now</button>
+        </div>
+      </div>
+
+      <!-- Step 2: LLM / API key -->
+      <div class="ob-step hidden" id="ob-step-llm">
+        <p class="ob-body">Now I need a brain.</p>
+        <p class="ob-body-sm">Paste an API key or a local endpoint below. OpenAI, Anthropic, and DeepSeek all work great.</p>
+
+        <div class="ob-key-row api-key-wrapper">
+          <input type="text" id="ob-api-key" placeholder="API key or local endpoint (e.g. http://localhost:11434/v1)" autocomplete="off" class="api-key-masked" />
+          <button type="button" id="ob-api-key-eye" class="api-key-eye" title="Show / hide">
+            <svg id="ob-eye-show" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="ob-eye-hide" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <div id="ob-provider-hint" class="ob-provider-hint"></div>
+
+        <button class="ob-explain-toggle" id="ob-explain-btn" type="button">? What is this?</button>
+        <div class="ob-explain-box" id="ob-explain-box">
+          <p><strong>What's an API key?</strong> It's a password that lets Addie talk to a language model — the AI that reads your session and responds to your messages. Without it, Addie is just an empty shell.</p>
+          <p style="margin-top:10px"><strong>What's a language model?</strong> Think of it as the brain behind Addie. It reads your track names, devices, and parameters, understands what you're asking, and decides what to do. Without one, Addie can't do anything useful.</p>
+          <p style="margin-top:10px"><strong>Which model do I need?</strong> You need one with at least 70 billion parameters — "70B" is a rough measure of how capable a model is. Addie sends your entire session in every message, which is a lot of information. Smaller models lose track of it and start making mistakes. 70B is the practical floor for reliable results.</p>
+          <p style="margin-top:10px"><strong>Good options:</strong> Anthropic (Claude, best quality), DeepSeek (very capable, very cheap), OpenAI (ChatGPT), or OpenRouter (one key for all providers).</p>
+          <div class="ob-provider-guide-grid" style="margin-top:10px">
+            <span><strong>OpenAI</strong></span><span><code>sk-…</code></span>
+            <span><strong>Anthropic</strong></span><span><code>sk-ant-…</code></span>
+            <span><strong>OpenRouter</strong></span><span><code>sk-or-…</code></span>
+            <span><strong>DeepSeek</strong></span><span><code>sk-…</code></span>
+          </div>
+          <p style="margin-top:14px"><strong>Is it safe to paste my key here?</strong> Yes. Addie runs entirely on your machine — your key is saved in a local config file, never sent anywhere except directly to the AI provider you chose. No analytics, no servers, no middleman.</p>
+          <p style="margin-top:10px"><strong>Can I run a model locally instead?</strong> Yes — paste the local endpoint URL directly here (e.g. <code>http://localhost:11434/v1</code> for Ollama). No API key needed. But a 70B model requires ~40–48 GB of VRAM, so this is only practical on high-end hardware.</p>
+        </div>
+
+        <div id="ob-llm-error" class="ob-error hidden"></div>
+        <div class="ob-actions">
+          <button class="ob-btn-primary" id="ob-llm-next-btn" disabled>Continue</button>
+          <button class="ob-btn-ghost" id="ob-llm-skip-btn">Set up later</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Install control surface -->
+      <div class="ob-step hidden" id="ob-step-install">
+        <p class="ob-body">Installing Addie into Ableton.</p>
+        <p class="ob-body-sm">I need to copy a small script into your Ableton Remote Scripts folder. This is what lets me see and control your session.</p>
+
+        <div id="ob-install-status" class="ob-install-card">
+          <div class="ob-install-row" id="ob-install-searching">
+            <div class="ob-spinner"></div>
+            <span>Looking for Ableton installations...</span>
+          </div>
+        </div>
+
+        <div id="ob-install-error" class="ob-error hidden"></div>
+        <div id="ob-install-manual" class="ob-explainer hidden">
+          <p>Couldn't find Ableton automatically. Copy the <code>control_surface</code> folder from Addie's directory into your Ableton <strong>MIDI Remote Scripts</strong> folder, renaming it to <code>Addie</code>.</p>
+          <p style="margin-top:8px">
+            <strong>Windows:</strong> <code>C:\ProgramData\Ableton\Live X\Resources\MIDI Remote Scripts\</code><br/>
+            <strong>Mac:</strong> <code>/Applications/Ableton Live X Suite.app/Contents/App-Resources/MIDI Remote Scripts/</code>
+          </p>
+        </div>
+
+        <div class="ob-actions" id="ob-install-actions" style="display:none">
+          <button class="ob-btn-primary" id="ob-install-next-btn">Continue</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Enable in Ableton -->
+      <div class="ob-step hidden" id="ob-step-enable">
+        <p class="ob-body">Last step — enable Addie in Ableton.</p>
+        <p class="ob-body-sm">You don't need Ableton open right now. When you do open it, do this once:</p>
+
+        <ol class="ob-steps-list">
+          <li>Go to <strong>Preferences</strong> &nbsp;<span class="ob-kbd">Ctrl+,</span> / <span class="ob-kbd">Cmd+,</span></li>
+          <li>Click the <strong>Link, Tempo &amp; MIDI</strong> tab</li>
+          <li>Under <strong>Control Surface</strong>, pick <strong>Addie</strong> in any empty slot</li>
+          <li>Close Preferences — Addie connects automatically</li>
+        </ol>
+
+        <label class="ob-confirm-check" id="ob-enable-confirm-label">
+          <input type="checkbox" id="ob-enable-checkbox" />
+          <span>Got it — I'll select Addie as a Control Surface in Ableton Preferences when I open it</span>
+        </label>
+
+        <div class="ob-actions">
+          <button class="ob-btn-primary" id="ob-enable-next-btn" disabled>Start producing</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── MAIN APP ───────────────────────────────────────────────── -->
+  <div id="app" class="hidden">
+
+    <!-- ── VIEW: PROJECTS ──────────────────────────────────────── -->
+    <div id="view-projects" class="view hidden">
+      <div class="view-header">
+        <span class="view-logo">addie</span>
+        <div class="view-header-right">
+          <div id="proj-bridge-indicator" class="bridge-indicator off">
+            <span class="bridge-dot"></span>
+            <span class="bridge-label">Ableton not connected</span>
+          </div>
+          <div class="theme-dropdown" id="proj-theme-dropdown">
+            <button class="theme-dropdown-trigger" id="proj-theme-trigger" title="Change theme">
+              <span class="theme-dropdown-swatch" id="proj-theme-swatch"></span>
+            </button>
+            <div class="theme-dropdown-panel hidden" id="proj-theme-panel"></div>
+          </div>
+          <div class="lang-flag-picker" id="proj-lang-picker">
+            <button class="lang-flag-btn" data-lang="en" title="English">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="24" height="12"><clipPath id="a"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="b"><path d="M30 15h30v15zM0 0h30v15z"/></clipPath><g clip-path="url(#a)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30M60 0L0 30" clip-path="url(#b)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg>
+            </button>
+            <button class="lang-flag-btn" data-lang="es" title="Español">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="24" height="12"><rect width="60" height="30" fill="#74ACDF"/><rect y="7.5" width="60" height="15" fill="#fff"/><ellipse cx="30" cy="15" rx="5" ry="4" fill="#F6B40E" stroke="#85340A" stroke-width=".5"/></svg>
+            </button>
+          </div>
+          <button id="proj-settings-btn" class="icon-btn" title="Settings">⚙</button>
+        </div>
+      </div>
+      <div class="projects-body">
+        <div class="projects-title-row">
+          <h1 class="projects-title" data-i18n="projects.title">Projects</h1>
+        </div>
+        <div id="project-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: PROJECT DETAIL ────────────────────────────────── -->
+    <div id="view-project-detail" class="view hidden">
+      <div class="view-header">
+        <button class="back-btn" id="detail-back-btn" data-i18n="detail.back">← Projects</button>
+        <div class="view-header-right">
+          <div id="detail-bridge-indicator" class="bridge-indicator off">
+            <span class="bridge-dot"></span>
+            <span class="bridge-label">Ableton not connected</span>
+          </div>
+          <div class="theme-dropdown" id="detail-theme-dropdown">
+            <button class="theme-dropdown-trigger" id="detail-theme-trigger" title="Change theme">
+              <span class="theme-dropdown-swatch" id="detail-theme-swatch"></span>
+            </button>
+            <div class="theme-dropdown-panel hidden" id="detail-theme-panel"></div>
+          </div>
+          <div class="lang-flag-picker" id="detail-lang-picker">
+            <button class="lang-flag-btn" data-lang="en" title="English">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="24" height="12"><clipPath id="c"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="d"><path d="M30 15h30v15zM0 0h30v15z"/></clipPath><g clip-path="url(#c)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30M60 0L0 30" clip-path="url(#d)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg>
+            </button>
+            <button class="lang-flag-btn" data-lang="es" title="Español">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="24" height="12"><rect width="60" height="30" fill="#74ACDF"/><rect y="7.5" width="60" height="15" fill="#fff"/><ellipse cx="30" cy="15" rx="5" ry="4" fill="#F6B40E" stroke="#85340A" stroke-width=".5"/></svg>
+            </button>
+          </div>
+          <button id="detail-settings-btn" class="icon-btn" title="Settings">⚙</button>
+        </div>
+      </div>
+      <div class="detail-body">
+        <!-- Left: conversations -->
+        <div class="detail-left">
+          <div class="detail-section-header">
+            <span class="detail-project-name" id="detail-project-name"></span>
+            <button class="detail-edit-desc-btn" id="detail-edit-desc-btn" title="Edit description">✎</button>
+          </div>
+          <p class="detail-project-desc" id="detail-project-desc"></p>
+          <div class="detail-edit-desc-form hidden" id="detail-edit-desc-form">
+            <textarea id="detail-desc-input" rows="2" placeholder="Project description..."></textarea>
+            <div class="detail-edit-desc-actions">
+              <button class="btn-primary-sm" id="detail-desc-save-btn">Save</button>
+              <button class="btn-ghost-sm" id="detail-desc-cancel-btn">Cancel</button>
+            </div>
+          </div>
+
+          <div class="detail-subsection-header">
+            <span class="detail-subsection-label" data-i18n="detail.conversations">CONVERSATIONS</span>
+            <button class="btn-ghost-sm" id="new-conv-btn" data-i18n="detail.new_conv">+ New</button>
+          </div>
+          <div id="conv-list"></div>
+
+          <div class="detail-danger-zone">
+            <button class="btn-danger-sm" id="delete-project-btn" data-i18n="detail.delete_project">Delete project</button>
+          </div>
+        </div>
+
+        <!-- Right: knowledge -->
+        <div class="detail-right">
+          <div class="detail-subsection-header">
+            <span class="detail-subsection-label" data-i18n="detail.knowledge">PROJECT KNOWLEDGE</span>
+            <button class="btn-ghost-sm" id="new-knowledge-btn" data-i18n="detail.add_knowledge">+ Add</button>
+          </div>
+          <p class="detail-hint" data-i18n="detail.knowledge_hint">Notes and references Addie reads before every message in this project.</p>
+          <div id="knowledge-list"></div>
+
+          <!-- Knowledge editor (inline) -->
+          <div id="knowledge-editor" class="hidden">
+            <input type="text" id="knowledge-filename" placeholder="filename.md" class="knowledge-filename-input" />
+            <div id="knowledge-filename-error" class="knowledge-field-error hidden"></div>
+            <textarea id="knowledge-content" rows="12" placeholder="Write notes, paste lyrics, add references..."></textarea>
+            <div class="knowledge-editor-actions">
+              <button class="btn-primary-sm" id="knowledge-save-btn">Save</button>
+              <button class="btn-ghost-sm" id="knowledge-cancel-btn">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: CHAT ──────────────────────────────────────────── -->
+    <div id="view-chat" class="view hidden">
+      <aside id="sidebar">
+        <div id="logo" style="cursor:pointer" id="sidebar-logo">addie</div>
+        <div class="sidebar-section-label">PROJECT</div>
+        <div class="sidebar-project-name" id="sidebar-project-name" title="Back to project"></div>
+        <div class="sidebar-section-label" style="margin-top:16px">CONVERSATIONS</div>
+        <div id="conv-list-sidebar"></div>
+        <button id="new-conv-sidebar-btn" data-i18n="chat.new_conv">+ New conversation</button>
+        <div id="sidebar-bottom">
+          <div id="sync-status" data-i18n="chat.no_sync">No sync yet</div>
+          <div id="bridge-status-block">
+            <div id="bridge-indicator" class="bridge-indicator off">
+              <span class="bridge-dot"></span>
+              <span class="bridge-label">Ableton not connected</span>
+            </div>
+            <button id="bridge-help-btn" class="bridge-help-btn" data-i18n="chat.bridge_help">Bridge setup help</button>
+          </div>
+          <button id="settings-btn" data-i18n="chat.settings">⚙ Settings</button>
+        </div>
+      </aside>
+
+      <main id="main">
+        <div id="chat-header">
+          <button class="back-btn" id="chat-back-btn" data-i18n="chat.back">← Projects</button>
+          <span id="chat-conv-title" class="chat-conv-title"></span>
+          <button class="icon-btn" id="rename-conv-btn" title="Rename conversation">✎</button>
+          <div class="theme-dropdown" id="chat-theme-dropdown">
+            <button class="theme-dropdown-trigger" id="chat-theme-trigger" title="Change theme">
+              <span class="theme-dropdown-swatch" id="chat-theme-swatch"></span>
+            </button>
+            <div class="theme-dropdown-panel hidden" id="chat-theme-panel"></div>
+          </div>
+          <div class="lang-flag-picker" id="chat-lang-picker">
+            <button class="lang-flag-btn" data-lang="en" title="English">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="24" height="12"><clipPath id="e"><path d="M0 0v30h60V0z"/></clipPath><clipPath id="f"><path d="M30 15h30v15zM0 0h30v15z"/></clipPath><g clip-path="url(#e)"><path d="M0 0v30h60V0z" fill="#012169"/><path d="M0 0l60 30M60 0L0 30" stroke="#fff" stroke-width="6"/><path d="M0 0l60 30M60 0L0 30" clip-path="url(#f)" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg>
+            </button>
+            <button class="lang-flag-btn" data-lang="es" title="Español">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30" width="24" height="12"><rect width="60" height="30" fill="#74ACDF"/><rect y="7.5" width="60" height="15" fill="#fff"/><ellipse cx="30" cy="15" rx="5" ry="4" fill="#F6B40E" stroke="#85340A" stroke-width=".5"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="chat-window">
+          <div id="messages"></div>
+        </div>
+        <div id="input-area">
+          <textarea id="input" data-i18n="chat.placeholder" placeholder="Talk to Addie..." rows="1"></textarea>
+          <button id="send-btn">↑</button>
+        </div>
+      </main>
+    </div>
+
+    <!-- ── SETTINGS OVERLAY (shared across all views) ──────────── -->
+    <div id="settings-overlay" class="hidden">
+      <div id="settings-panel">
+        <div id="settings-header">
+          <span data-i18n="settings.title">Settings</span>
+          <button id="settings-close">✕</button>
+        </div>
+
+        <!-- API Key / Local Endpoint -->
+        <div class="settings-section">
+          <div class="settings-label" data-i18n="settings.api_key_label">LLM API KEY OR LOCAL ENDPOINT</div>
+          <div class="api-key-wrapper">
+            <input type="text" id="api-key-input" data-i18n="settings.api_key_placeholder" placeholder="Paste API key or local endpoint (e.g. http://localhost:11434/v1)" autocomplete="off" />
+            <button type="button" id="api-key-eye" class="api-key-eye" title="Show / hide">
+              <svg id="eye-icon-show" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg id="eye-icon-hide" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <div id="provider-detected" class="settings-hint"></div>
+          <button class="ob-explain-toggle" id="settings-explain-btn" type="button" data-i18n="settings.what_key">? What key do I need?</button>
+          <div class="ob-explain-box" id="settings-explain-box">
+            <p><strong>What's an API key?</strong> Addie needs to talk to an AI language model — a program that understands language and can reason about your session. Think of the key as a password that gives Addie access to that AI. You get it from the provider's website, paste it here once, and you're done.</p>
+            <p style="margin-top:10px"><strong>What's a language model?</strong> It's the brain behind Addie. It reads your track names, devices, and parameters, understands what you're asking, and decides what to do. Without one, Addie is just a UI with no intelligence.</p>
+            <p style="margin-top:10px"><strong>Which model do I need?</strong> You need one with at least 70 billion parameters — "70B" is a rough measure of how capable a model is. Addie sends your entire session in every message, which is a lot of information. Smaller models lose track of it and start making mistakes. 70B is the practical floor for this to work reliably.</p>
+            <p style="margin-top:10px"><strong>Good options:</strong></p>
+            <ul class="ob-explain-list">
+              <li><strong>Anthropic (Claude)</strong> — the best results overall, especially for nuanced mix advice. <a class="ob-link" href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></li>
+              <li><strong>DeepSeek</strong> — very capable, very cheap. <a class="ob-link" href="https://platform.deepseek.com" target="_blank" rel="noopener">platform.deepseek.com</a></li>
+              <li><strong>OpenAI (ChatGPT)</strong> — reliable, widely supported. <a class="ob-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a></li>
+              <li><strong>OpenRouter</strong> — one key, access to all providers at once. <a class="ob-link" href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai</a></li>
+            </ul>
+            <div class="ob-provider-guide-grid" style="margin-top:12px">
+              <span><strong>OpenAI</strong></span><span><code>sk-…</code></span>
+              <span><strong>Anthropic</strong></span><span><code>sk-ant-…</code></span>
+              <span><strong>OpenRouter</strong></span><span><code>sk-or-…</code></span>
+              <span><strong>DeepSeek</strong></span><span><code>sk-…</code></span>
+            </div>
+            <p style="margin-top:14px"><strong>Is it safe to paste my key here?</strong> Yes. Addie runs entirely on your machine — your key is saved in a local config file (<code>config.json</code>) in the app folder, never sent anywhere except directly to the AI provider you chose. No analytics, no servers, no middleman. The only traffic is between your computer and the provider's API.</p>
+            <p style="margin-top:10px"><strong>Can I run a model locally instead?</strong> Yes. If you have Ollama or LM Studio running, paste the local endpoint URL directly into the API key field (e.g. <code>http://localhost:11434/v1</code>). Addie will detect it automatically — no API key needed. Keep in mind that a 70B model requires roughly 40–48 GB of VRAM, so this is only practical on high-end workstations or multi-GPU rigs. Most people use a cloud provider.</p>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label" data-i18n="settings.model_id">MODEL ID <span class="settings-optional" data-i18n="settings.endpoint_optional">(optional)</span></div>
+          <input type="text" id="model-id-input" placeholder="e.g. llama3-70b-8192" data-i18n="settings.model_placeholder" />
+        </div>
+
+        <!-- Producer preferences -->
+        <div class="settings-section">
+          <div class="settings-label" data-i18n="settings.producer_prefs">PRODUCER PREFERENCES</div>
+          <div class="settings-hint" data-i18n="settings.producer_prefs_hint" style="margin-bottom:12px">Addie uses these to give better context-aware advice. Edit anytime.</div>
+          <div id="settings-prefs-panel"></div>
+        </div>
+
+        <!-- Control surface -->
+        <div class="settings-section">
+          <div class="settings-label" data-i18n="settings.control_surface">CONTROL SURFACE</div>
+          <button id="settings-reinstall-btn" class="btn-ghost-sm" data-i18n="settings.reinstall">Reinstall into Ableton</button>
+          <div id="reinstall-feedback" class="settings-hint"></div>
+        </div>
+
+        <!-- Onboarding -->
+        <div class="settings-section">
+          <div class="settings-label" data-i18n="settings.onboarding_label">ONBOARDING</div>
+          <button id="settings-redo-onboarding-btn" class="btn-ghost-sm" data-i18n="settings.redo_onboarding">Redo onboarding wizard</button>
+          <div id="redo-onboarding-feedback" class="settings-hint"></div>
+        </div>
+
+        <div id="settings-actions">
+          <button id="settings-save" data-i18n="settings.save">Save</button>
+          <div id="settings-feedback"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CUSTOM PROMPT MODAL ───────────────────────────────── -->
+    <div id="prompt-overlay" class="hidden">
+      <div id="prompt-panel">
+        <div id="prompt-title"></div>
+        <input type="text" id="prompt-input" autocomplete="off" />
+        <div id="prompt-actions">
+          <button class="btn-primary-sm" id="prompt-ok-btn">OK</button>
+          <button class="btn-ghost-sm" id="prompt-cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BRIDGE SETUP DIALOG ─────────────────────────────── -->
+    <div id="bridge-dialog-overlay" class="hidden">
+      <div id="bridge-dialog">
+        <div id="bridge-dialog-header">
+          <span>Ableton Bridge Setup</span>
+          <button id="bridge-dialog-close">✕</button>
+        </div>
+        <div id="bridge-dialog-status">
+          <div id="bridge-dialog-indicator" class="bridge-indicator off">
+            <span class="bridge-dot"></span>
+            <span class="bridge-label">Ableton not connected</span>
+          </div>
+        </div>
+        <div class="bridge-dialog-section">
+          <div class="bridge-dialog-step-label">STEP 1 — Install the control surface script</div>
+          <p class="bridge-dialog-body">Addie needs a small Python script placed inside Ableton's MIDI Remote Scripts folder. This was done automatically during onboarding, but you can reinstall it anytime.</p>
+          <div class="bridge-dialog-paths">
+            <div><strong>Windows</strong><br/><code>C:\ProgramData\Ableton\Live X\Resources\MIDI Remote Scripts\Addie\</code></div>
+            <div style="margin-top:10px"><strong>Mac</strong><br/><code>/Applications/Ableton Live X Suite.app/Contents/App-Resources/MIDI Remote Scripts/Addie/</code></div>
+          </div>
+          <button id="bridge-dialog-reinstall-btn" class="btn-ghost-sm" style="margin-top:12px">Reinstall control surface now</button>
+          <div id="bridge-dialog-reinstall-feedback" class="settings-hint"></div>
+        </div>
+        <div class="bridge-dialog-section">
+          <div class="bridge-dialog-step-label">STEP 2 — Select Addie in Ableton Preferences</div>
+          <p class="bridge-dialog-body">With Ableton open:</p>
+          <ol class="bridge-dialog-list">
+            <li>Open <strong>Preferences</strong> &nbsp;<span class="ob-kbd">Ctrl+,</span> / <span class="ob-kbd">Cmd+,</span></li>
+            <li>Go to the <strong>Link, Tempo &amp; MIDI</strong> tab</li>
+            <li>Find any empty <strong>Control Surface</strong> slot and select <strong>Addie</strong></li>
+            <li>Close Preferences — the bridge connects in seconds</li>
+          </ol>
+        </div>
+        <div class="bridge-dialog-section bridge-dialog-waiting" id="bridge-dialog-polling">
+          <div class="ob-spinner"></div>
+          <span>Waiting for Ableton to connect...</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+
+  <script src="i18n.js"></script>
+  <script src="onboarding.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

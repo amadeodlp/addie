@@ -1,0 +1,86 @@
+{
+  "newProject": [
+    {
+      "text": "I'll record some warm feminine vocals, let's build a pro vocal chain",
+      "world": "creative_intent",
+      "icon": "🎤"
+    },
+    {
+      "text": "Set me up for a hip-hop beat — I need drums, bass, and a synth lead",
+      "world": "creative_intent",
+      "icon": "🥁"
+    },
+    {
+      "text": "I want to layer thick analog pads, set up a track with Diva and some effects",
+      "world": "creative_intent",
+      "icon": "🎹"
+    },
+    {
+      "text": "Create a mixing template with drum bus, vocal bus, and master chain",
+      "world": "creative_intent",
+      "icon": "🎚️"
+    },
+    {
+      "text": "Let's build a return track setup — reverb, delay, and maybe a chorus send",
+      "world": "creative_intent",
+      "icon": "↩️"
+    },
+    {
+      "text": "I'm about to track live guitar, help me plan the processing chain",
+      "world": "creative_intent",
+      "icon": "🎸"
+    },
+    {
+      "text": "Set the tempo to 128 and create an 8-bar loop for sketching ideas",
+      "world": "creative_intent",
+      "icon": "⏱️"
+    },
+    {
+      "text": "What should I know about gain staging before I start mixing?",
+      "world": "educational",
+      "icon": "📖"
+    }
+  ],
+  "workInProgress": [
+    {
+      "text": "My low end is muddy, what's competing down there?",
+      "world": "diagnostic",
+      "icon": "🔍"
+    },
+    {
+      "text": "The mix sounds flat and lifeless, what am I missing?",
+      "world": "diagnostic",
+      "icon": "📉"
+    },
+    {
+      "text": "Walk me through what each device on my drum bus is doing",
+      "world": "educational",
+      "icon": "📖"
+    },
+    {
+      "text": "Give me a full mix assessment — gain staging, bus routing, everything",
+      "world": "big_picture",
+      "icon": "🔭"
+    },
+    {
+      "text": "What would a pro change about my master chain?",
+      "world": "educational",
+      "icon": "🏆"
+    },
+    {
+      "text": "Solo the kick and tell me if the transient is getting squashed",
+      "world": "diagnostic",
+      "icon": "👂"
+    },
+    {
+      "text": "My vocals sound harsh in the upper mids, can you tame them?",
+      "world": "sound_design",
+      "icon": "✨"
+    },
+    {
+      "text": "Group my drum tracks together and set up a parallel compression bus",
+      "world": "surgical",
+      "icon": "⚙️"
+    }
+  ]
+}
