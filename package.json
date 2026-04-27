@@ -1,6 +1,6 @@
 {
   "name": "addie",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "AI producer assistant for Ableton Live",
   "author": "Amadeo de la Parra",
   "main": "electron/main.js",
