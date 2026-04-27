@@ -13,3 +13,11 @@ projects
 __pycache__/
 *.pyc
 *.pyo
+
+# Local dev tools
+.claude/
+_check.js
+*.bak
+
+# User state (generated at runtime)
+producer.md

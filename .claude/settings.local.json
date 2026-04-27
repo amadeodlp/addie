@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git -C D:/projects/addie status)",
-      "Bash(test:*)",
-      "Bash(cat:*)"
-    ]
-  }
-}
