@@ -40,11 +40,14 @@ jobs:
       - name: Build DMG
         run: npm run build:mac -- --publish never
 
+      - name: Rename DMG
+        run: mv dist/*.dmg dist/Addie.dmg
+
       - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
           name: addie-mac
-          path: dist/*.dmg
+          path: dist/Addie.dmg
 
   # ─── Windows — EXE installer ────────────────────────────────────────────────
   build-win:
@@ -80,11 +83,15 @@ jobs:
       - name: Build EXE installer
         run: npm run build:win -- --publish never
 
+      - name: Rename EXE
+        run: rename dist\*.exe Addie.Setup.exe
+        shell: cmd
+
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
           name: addie-win
-          path: dist/*.exe
+          path: dist/Addie.Setup.exe
 
   # ─── GitHub Release — attach both artifacts ─────────────────────────────────
   release:
