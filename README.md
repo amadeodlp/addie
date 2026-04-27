@@ -1,7 +1,8 @@
 # Addie
 
-AI producer assistant for Ableton Live. Bridges a Python control surface, a Node.js backend,
-and any LLM into a chat interface that sees your session, diagnoses mix problems, and controls your DAW.
+[**addie.digital**](https://addie.digital) — AI co-producer for Ableton Live.
+
+Bridges a Python control surface, a Node.js backend, and any LLM into a chat interface that sees your session, diagnoses mix problems, and controls your DAW.
 
 **Supported:** Ableton Live 11, 12 — Windows and macOS.
 
@@ -10,6 +11,7 @@ and any LLM into a chat interface that sees your session, diagnoses mix problems
 ## How it works
 
 Addie runs as a native desktop app (Electron). On launch it starts a local server that:
+
 - Connects to Ableton via a **Python MIDI Remote Script** (full session access — mixer, devices, parameters, transport, clips, automation)
 - Talks to an **LLM** (your API key, or a local model like Ollama) to understand and respond
 - Uses **RAG** (retrieval-augmented generation) grounded in audio engineering reference books
