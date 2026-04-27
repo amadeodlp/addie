@@ -116,35 +116,6 @@ jobs:
           name: addie-win-unsigned
           path: dist/Addie.Setup.exe
 
-  # ─── Windows — sign with SignPath (FOSS program) ────────────────────────────
-  sign-win:
-    needs: build-win
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download unsigned EXE
-        uses: actions/download-artifact@v4
-        with:
-          name: addie-win-unsigned
-          path: unsigned
-
-      - name: Sign with SignPath
-        uses: signpath/github-action-submit-signing-request@v1
-        with:
-          api-token:            ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id:      ${{ secrets.SIGNPATH_ORG_ID }}
-          project-slug:         addie
-          signing-policy-slug:  release-signing
-          artifact-configuration-slug: installer
-          github-artifact-id:   ${{ steps.upload.outputs.artifact-id }}
-          wait-for-completion:  true
-          output-artifact-directory: signed
-
-      - name: Upload signed EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: addie-win
-          path: signed/Addie.Setup.exe
-
   # ─── GitHub Release — attach both artifacts ─────────────────────────────────
   release:
     needs: [build-mac, build-win]
