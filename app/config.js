@@ -35,11 +35,16 @@ function loadConfig(root) {
 }
 
 function saveConfig(config, root) {
-  fs.writeFileSync(getConfigPath(root), JSON.stringify(config, null, 2));
+  const configPath = getConfigPath(root);
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 
 function getConfigPath(root) {
-  return path.join(root || path.join(__dirname, '..'), 'config.json');
+  // In production, ADDIE_USER_DATA points to the OS user data dir (writable).
+  // In dev, fall back to the repo root so existing config.json still works.
+  const base = process.env.ADDIE_USER_DATA || root || path.join(__dirname, '..');
+  return path.join(base, 'config.json');
 }
 
 function deepMerge(base, override) {

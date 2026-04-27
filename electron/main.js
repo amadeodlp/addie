@@ -2,9 +2,9 @@
  * electron/main.js — Addie's Electron entry point.
  */
 
-const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog, utilityProcess } = require('electron');
 const path = require('path');
-const { fork, execSync } = require('child_process');
+const { execSync } = require('child_process');
 const http = require('http');
 const net  = require('net');
 
@@ -223,14 +223,18 @@ function createWindow() {
 function startBackendServer() {
   const serverPath = path.join(__dirname, '..', 'app', 'server.js');
 
-  serverProcess = fork(serverPath, [], {
+  // utilityProcess is Electron's built-in way to run a Node.js child process.
+  // Unlike fork(), it works correctly inside packaged asars on all platforms,
+  // including Windows where fork() has known module resolution issues.
+  serverProcess = utilityProcess.fork(serverPath, [], {
     env: {
       ...process.env,
       ADDIE_ROOT:      path.join(__dirname, '..'),
       ADDIE_RESOURCES: process.resourcesPath || '',
+      ADDIE_USER_DATA: app.getPath('userData'),
       NODE_ENV:        isDev ? 'development' : 'production',
     },
-    silent: false,
+    stdio: 'inherit',
   });
 
   serverProcess.on('exit', (code) => {

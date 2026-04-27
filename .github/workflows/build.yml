@@ -37,16 +37,24 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
-      - name: Build DMG
-        run: npm run build:mac -- --publish never
+      - name: Build app bundle (unsigned)
+        run: npm run build:mac -- --publish never --dir
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Ad-hoc sign app bundle
         run: |
-          APP=$(find dist -name "*.app" | head -1)
-          codesign --deep --force --sign - "$APP"
-          echo "Signed: $APP"
+          APP=$(find dist/mac* -name "*.app" | head -1)
+          echo "Signing: $APP"
+          codesign --deep --force --options runtime --sign - "$APP"
+          codesign --verify --deep --strict "$APP"
+          echo "Sign OK"
+
+      - name: Package signed app into DMG
+        run: |
+          npm run build:mac -- --publish never --pd dist
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Rename DMG
         run: mv dist/Addie.dmg dist/Addie.dmg 2>/dev/null || mv dist/*.dmg dist/Addie.dmg
@@ -132,7 +140,7 @@ jobs:
 
   # ─── GitHub Release — attach both artifacts ─────────────────────────────────
   release:
-    needs: [build-mac, sign-win]
+    needs: [build-mac, build-win]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -146,7 +154,7 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: addie-win
+          name: addie-win-unsigned
           path: release-assets
 
       - name: Attach installers to GitHub Release
