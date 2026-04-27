@@ -9,11 +9,13 @@ const http = require('http');
 const net  = require('net');
 
 const isDev = process.argv.includes('--dev');
-const SERVER_PORT = 3000;
+const DEFAULT_UI_PORT = 3000;
+/** Actual UI port after startup (may differ if DEFAULT_UI_PORT is busy). */
+let serverPort = DEFAULT_UI_PORT;
 
 // How long to wait for the server before giving up.
 // node-machine-id + node_modules cold-load can take 20–30s on slow machines.
-const SERVER_READY_TIMEOUT = 60000; // 60 seconds
+const SERVER_READY_TIMEOUT = 120000; // 2 minutes
 
 // How long between health-check polls while waiting.
 const POLL_INTERVAL_MS = 500;
@@ -26,17 +28,47 @@ let quitting      = false;
 // ─── APP LIFECYCLE ────────────────────────────────────────────────────────────
 
 app.whenReady().then(async () => {
-  showLoadingWindow();
-  await freePort(SERVER_PORT);
-  startBackendServer();
+  await showLoadingWindow();
+  setLoadingStatus('Starting…', 'Preparing the app');
 
   try {
-    await waitForServer(SERVER_PORT, SERVER_READY_TIMEOUT);
+    setLoadingStatus('Checking port…', `Default is ${DEFAULT_UI_PORT}`);
+    serverPort = await findAvailableListenPort(DEFAULT_UI_PORT);
+    if (serverPort !== DEFAULT_UI_PORT) {
+      setLoadingStatus(
+        'Checking port…',
+        `Port ${DEFAULT_UI_PORT} is in use — using ${serverPort}`
+      );
+    }
   } catch (err) {
     closeLoadingWindow();
     dialog.showErrorBox(
       'Addie — Startup Error',
-      `Backend server did not start after ${SERVER_READY_TIMEOUT / 1000}s.\n\nDetail: ${err.message}`
+      `Could not find a free network port for the app.\n\nDetail: ${err.message}`
+    );
+    quit();
+    return;
+  }
+
+  setLoadingStatus(
+    'Starting backend…',
+    'Loading the server (first launch can take a minute on some PCs)'
+  );
+  startBackendServer(serverPort);
+
+  try {
+    await waitForServer(serverPort, SERVER_READY_TIMEOUT, (elapsedMs) => {
+      const secs = Math.floor(elapsedMs / 1000);
+      setLoadingStatus(
+        'Waiting for server…',
+        `${secs}s — still loading; antivirus can slow the first run`
+      );
+    });
+  } catch (err) {
+    closeLoadingWindow();
+    dialog.showErrorBox(
+      'Addie — Startup Error',
+      `Backend server did not start after ${SERVER_READY_TIMEOUT / 1000}s (port ${serverPort}).\n\nDetail: ${err.message}`
     );
     quit();
     return;
@@ -61,7 +93,7 @@ app.on('before-quit', (e) => {
   e.preventDefault();             // Hold quit until flush completes
 
   // Flush all pending chat buffers via HTTP, then kill the server
-  fetch(`http://localhost:${SERVER_PORT}/api/save-chat`, { method: 'POST' })
+  fetch(`http://localhost:${serverPort}/api/save-chat`, { method: 'POST' })
     .catch(() => {})              // Server may already be gone
     .finally(() => {
       if (serverProcess) serverProcess.kill();
@@ -75,20 +107,23 @@ app.on('before-quit', (e) => {
 // instead of just a blank taskbar icon. Closed once /health responds.
 
 function showLoadingWindow() {
-  loadingWindow = new BrowserWindow({
-    width: 340,
-    height: 160,
-    frame: false,
-    resizable: false,
-    center: true,
-    backgroundColor: '#0e0e0e',
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
-  });
+  return new Promise((resolve) => {
+    loadingWindow = new BrowserWindow({
+      width: 420,
+      height: 200,
+      frame: false,
+      resizable: false,
+      center: true,
+      backgroundColor: '#0e0e0e',
+      webPreferences: { nodeIntegration: false, contextIsolation: true },
+    });
 
-  // Inline HTML — no file needed
-  loadingWindow.loadURL(
-    'data:text/html,' +
-    encodeURIComponent(`
+    loadingWindow.webContents.once('did-finish-load', () => resolve());
+
+    // Inline HTML — no file needed
+    loadingWindow.loadURL(
+      'data:text/html,' +
+      encodeURIComponent(`
       <!DOCTYPE html>
       <html>
       <head>
@@ -104,11 +139,16 @@ function showLoadingWindow() {
             align-items: center;
             justify-content: center;
             height: 100vh;
-            gap: 14px;
+            gap: 12px;
             user-select: none;
+            padding: 16px 20px;
           }
           .title { font-size: 22px; font-weight: 600; letter-spacing: 0.02em; }
-          .sub   { font-size: 13px; color: #666; }
+          .main  { font-size: 13px; color: #aaa; text-align: center; max-width: 360px; line-height: 1.35; }
+          .detail {
+            font-size: 12px; color: #555; text-align: center; max-width: 360px;
+            line-height: 1.4; min-height: 2.8em;
+          }
           .dots  { display: flex; gap: 6px; }
           .dot   {
             width: 7px; height: 7px; border-radius: 50%;
@@ -126,11 +166,26 @@ function showLoadingWindow() {
       <body>
         <div class="title">Addie</div>
         <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-        <div class="sub">Starting up…</div>
+        <div class="main" id="status-main">Starting up…</div>
+        <div class="detail" id="status-detail"></div>
       </body>
       </html>
     `)
-  );
+    );
+  });
+}
+
+/** Update the loading window copy (safe for arbitrary text). */
+function setLoadingStatus(mainLine, detailLine) {
+  if (!loadingWindow || loadingWindow.isDestroyed()) return;
+  const a = JSON.stringify(mainLine ?? '');
+  const b = JSON.stringify(detailLine ?? '');
+  loadingWindow.webContents
+    .executeJavaScript(
+      `document.getElementById('status-main').textContent = ${a};
+       document.getElementById('status-detail').textContent = ${b};`
+    )
+    .catch(() => {});
 }
 
 function closeLoadingWindow() {
@@ -182,6 +237,27 @@ function isPortInUse(port) {
   });
 }
 
+/**
+ * Prefer `preferred` (usually 3000). Try to free a stale Addie listener there,
+ * then fall back to the next free port if something else still holds it.
+ */
+async function findAvailableListenPort(preferred) {
+  if (!(await isPortInUse(preferred))) return preferred;
+
+  setLoadingStatus('Freeing port…', `Trying to stop a previous Addie instance on port ${preferred}`);
+  await freePort(preferred);
+  if (!(await isPortInUse(preferred))) return preferred;
+
+  const max = Math.min(preferred + 64, 65535);
+  for (let p = preferred + 1; p <= max; p++) {
+    if (!(await isPortInUse(p))) {
+      console.warn(`[electron] UI port ${preferred} busy — using ${p}`);
+      return p;
+    }
+  }
+  throw new Error(`No free port between ${preferred + 1} and ${max}`);
+}
+
 // ─── WINDOW ───────────────────────────────────────────────────────────────────
 
 function createWindow() {
@@ -204,11 +280,11 @@ function createWindow() {
     // Always flush any pending chat turns to disk before closing.
     // No confirmation dialog — conversations should always persist.
     try {
-      await fetch(`http://localhost:${SERVER_PORT}/api/save-chat`, { method: 'POST' });
+      await fetch(`http://localhost:${serverPort}/api/save-chat`, { method: 'POST' });
     } catch { /* server may already be gone — that's fine */ }
   });
 
-  mainWindow.loadURL(`http://localhost:${SERVER_PORT}`);
+  mainWindow.loadURL(`http://localhost:${serverPort}`);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
@@ -220,7 +296,7 @@ function createWindow() {
 
 // ─── BACKEND SERVER ───────────────────────────────────────────────────────────
 
-function startBackendServer() {
+function startBackendServer(port) {
   const serverPath = path.join(__dirname, '..', 'app', 'server.js');
 
   // utilityProcess is Electron's built-in way to run a Node.js child process.
@@ -232,6 +308,7 @@ function startBackendServer() {
       ADDIE_ROOT:      path.join(__dirname, '..'),
       ADDIE_RESOURCES: process.resourcesPath || '',
       ADDIE_USER_DATA: app.getPath('userData'),
+      ADDIE_UI_PORT:   String(port),
       NODE_ENV:        isDev ? 'development' : 'production',
     },
     stdio: 'inherit',
@@ -250,12 +327,13 @@ function startBackendServer() {
 
 // ─── WAIT FOR SERVER ──────────────────────────────────────────────────────────
 
-function waitForServer(port, timeout) {
+function waitForServer(port, timeout, onProgress) {
   return new Promise((resolve, reject) => {
     const start = Date.now();
     let settled = false;
 
     function poll() {
+      if (onProgress) onProgress(Date.now() - start);
       const req = http.get(`http://localhost:${port}/health`, (res) => {
         res.resume();
         if (!settled && res.statusCode === 200) {

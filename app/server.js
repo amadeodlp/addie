@@ -34,6 +34,11 @@ const ROOT = process.env.ADDIE_ROOT || path.join(__dirname, '..');
 // --- INIT --------------------------------------------------------------------
 
 const config = loadConfig(ROOT);
+// Electron may pass a different UI port when 3000 is already taken.
+if (process.env.ADDIE_UI_PORT) {
+  const p = parseInt(process.env.ADDIE_UI_PORT, 10);
+  if (Number.isInteger(p) && p >= 1024 && p <= 65535) config.ports.ui = p;
+}
 context.init(ROOT);
 presets.init(ROOT);
 
