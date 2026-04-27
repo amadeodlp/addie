@@ -39,9 +39,17 @@ jobs:
 
       - name: Build DMG
         run: npm run build:mac -- --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Ad-hoc sign app bundle
+        run: |
+          APP=$(find dist -name "*.app" | head -1)
+          codesign --deep --force --sign - "$APP"
+          echo "Signed: $APP"
 
       - name: Rename DMG
-        run: mv dist/*.dmg dist/Addie.dmg
+        run: mv dist/Addie.dmg dist/Addie.dmg 2>/dev/null || mv dist/*.dmg dist/Addie.dmg
 
       - name: Upload DMG
         uses: actions/upload-artifact@v4

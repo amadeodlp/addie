@@ -38,7 +38,13 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "assets/logo.png"
+      "icon": "assets/logo.png",
+      "identity": null,
+      "artifactName": "Addie.dmg"
+    },
+    "dmg": {
+      "internetEnabled": false,
+      "artifactName": "Addie.dmg"
     },
     "nsis": {
       "oneClick": false,
