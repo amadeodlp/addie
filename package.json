@@ -19,17 +19,25 @@
       "electron/**/*",
       "app/**/*",
       "ui/**/*",
-      "projects/**/*",
-      "producer.md",
-      "config.json"
+      "scripts/query_index.py",
+      "knowledge/.index/**/*",
+      "presets/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build-bin/",
+        "to": "rag-bin/",
+        "filter": ["query_index", "query_index.exe"]
+      }
     ],
     "win": {
       "target": "nsis",
-      "icon": "ui/assets/icon.ico"
+      "icon": "assets/logo.png"
     },
     "mac": {
       "target": "dmg",
-      "icon": "ui/assets/icon.icns"
+      "icon": "assets/logo.png"
     },
     "nsis": {
       "oneClick": false,

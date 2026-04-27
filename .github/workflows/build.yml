@@ -1,0 +1,107 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+  # ─── macOS — DMG ────────────────────────────────────────────────────────────
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install pyinstaller sentence-transformers numpy
+
+      - name: Build RAG executable (macOS)
+        run: |
+          pyinstaller scripts/query_index.spec --distpath build-bin-tmp
+          mkdir -p build-bin
+          mv build-bin-tmp/query_index build-bin/query_index
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build DMG
+        run: npm run build:mac
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: addie-mac
+          path: dist/*.dmg
+
+  # ─── Windows — EXE installer ────────────────────────────────────────────────
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install pyinstaller sentence-transformers numpy
+
+      - name: Build RAG executable (Windows)
+        run: |
+          pyinstaller scripts/query_index.spec --distpath build-bin-tmp
+          mkdir build-bin
+          move build-bin-tmp\query_index.exe build-bin\query_index.exe
+        shell: cmd
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build EXE installer
+        run: npm run build:win
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: addie-win
+          path: dist/*.exe
+
+  # ─── GitHub Release — attach both artifacts ─────────────────────────────────
+  release:
+    needs: [build-mac, build-win]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: addie-mac
+          path: release-assets
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: addie-win
+          path: release-assets
+
+      - name: Attach installers to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*

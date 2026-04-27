@@ -226,8 +226,9 @@ function startBackendServer() {
   serverProcess = fork(serverPath, [], {
     env: {
       ...process.env,
-      ADDIE_ROOT: path.join(__dirname, '..'),
-      NODE_ENV: isDev ? 'development' : 'production',
+      ADDIE_ROOT:      path.join(__dirname, '..'),
+      ADDIE_RESOURCES: process.resourcesPath || '',
+      NODE_ENV:        isDev ? 'development' : 'production',
     },
     silent: false,
   });

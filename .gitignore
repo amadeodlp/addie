@@ -21,3 +21,7 @@ _check.js
 
 # User state (generated at runtime)
 producer.md
+
+# Build artifacts
+build-bin/
+build-bin-tmp/
