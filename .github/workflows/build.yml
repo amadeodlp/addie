@@ -28,7 +28,9 @@ jobs:
 
       - name: Build RAG executable (macOS)
         run: |
-          pyinstaller scripts/query_index.spec --distpath build-bin-tmp
+          cd scripts
+          pyinstaller query_index.spec --distpath ../build-bin-tmp
+          cd ..
           mkdir -p build-bin
           mv build-bin-tmp/query_index build-bin/query_index
 
@@ -65,7 +67,9 @@ jobs:
 
       - name: Build RAG executable (Windows)
         run: |
-          pyinstaller scripts/query_index.spec --distpath build-bin-tmp
+          cd scripts
+          pyinstaller query_index.spec --distpath ..\build-bin-tmp
+          cd ..
           mkdir build-bin
           move build-bin-tmp\query_index.exe build-bin\query_index.exe
         shell: cmd

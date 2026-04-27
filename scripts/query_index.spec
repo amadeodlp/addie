@@ -40,7 +40,7 @@ hiddenimports = [
 ]
 
 a = Analysis(
-    ['scripts/query_index.py'],
+    ['query_index.py'],
     pathex=['.'],
     binaries=[],
     datas=datas,
