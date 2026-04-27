@@ -42,17 +42,24 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
+      # Ad-hoc identity "-": do NOT use --options runtime (that is for Developer ID +
+      # notarization). Runtime + ad-hoc often yields Gatekeeper "app is damaged" on
+      # quarantined downloads even when codesign --verify passes in CI.
       - name: Ad-hoc sign app bundle
         run: |
-          APP=$(find dist/mac* -name "*.app" | head -1)
+          APP="$(find dist/mac* -name "*.app" | head -1)"
+          test -n "$APP" && test -d "$APP"
           echo "Signing: $APP"
-          codesign --deep --force --options runtime --sign - "$APP"
+          codesign --deep --force --sign - "$APP"
           codesign --verify --deep --strict "$APP"
           echo "Sign OK"
 
+      # --pd is --prepackaged: must be the .app path, not the dist/ folder.
       - name: Package signed app into DMG
         run: |
-          npm run build:mac -- --publish never --pd dist
+          APP="$(find dist/mac* -name "*.app" | head -1)"
+          test -n "$APP" && test -d "$APP"
+          npm run build:mac -- --publish never --pd "$APP"
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
