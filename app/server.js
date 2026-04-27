@@ -29,35 +29,41 @@ const presets   = require('./plugins/presets');
 const { handleChat, confirmActions, cancelActions, initConversation, resetConversation } = require('./core/chat');
 const { extractConversationNotes } = require('./intelligence/notes');
 
-const ROOT = process.env.ADDIE_ROOT || path.join(__dirname, '..');
+// Bundled app assets (ui, presets, control_surface, knowledge index) live under asar — read-only.
+const INSTALL_ROOT = process.env.ADDIE_ROOT || path.join(__dirname, '..');
+// Projects + producer.md must not live inside app.asar (mkdir would throw). Dev uses repo root.
+const DATA_ROOT =
+  String(INSTALL_ROOT).includes('app.asar') && process.env.ADDIE_USER_DATA
+    ? process.env.ADDIE_USER_DATA
+    : INSTALL_ROOT;
 
 // --- INIT --------------------------------------------------------------------
 
-const config = loadConfig(ROOT);
+const config = loadConfig(INSTALL_ROOT);
 // Electron may pass a different UI port when 3000 is already taken.
 if (process.env.ADDIE_UI_PORT) {
   const p = parseInt(process.env.ADDIE_UI_PORT, 10);
   if (Number.isInteger(p) && p >= 1024 && p <= 65535) config.ports.ui = p;
 }
-context.init(ROOT);
-presets.init(ROOT);
+context.init(DATA_ROOT);
+presets.init(INSTALL_ROOT);
 
 if (config.activeProject) context.ensureProject(config.activeProject);
 if (config.activeProject && !context.projectExists(config.activeProject)) {
   config.activeProject      = null;
   config.activeConversation = null;
-  _saveConfig(config, ROOT);
+  _saveConfig(config, INSTALL_ROOT);
 }
 
 const app    = express();
 const server = http.createServer(app);
 const wss    = new WebSocket.Server({ server });
 
-app.use(express.static(path.join(ROOT, 'ui')));
+app.use(express.static(path.join(INSTALL_ROOT, 'ui')));
 app.use(express.json({ limit: '10mb' }));
 
-/** Helper: save config with ROOT bound */
-function saveConfig(cfg) { _saveConfig(cfg, ROOT); }
+/** Helper: save config with install root bound (config file path uses ADDIE_USER_DATA when set) */
+function saveConfig(cfg) { _saveConfig(cfg, INSTALL_ROOT); }
 
 // --- HTTP ROUTES — HEALTH & SETTINGS -----------------------------------------
 
@@ -244,7 +250,7 @@ app.delete('/api/projects/:project/knowledge/:filename', (req, res) => {
 app.post('/api/install-control-surface', (req, res) => {
   const fs   = require('fs');
   const dest = path.join(req.body.scriptsPath, 'Addie');
-  const src  = path.join(ROOT, 'control_surface');
+  const src  = path.join(INSTALL_ROOT, 'control_surface');
   if (!fs.existsSync(src))
     return res.json({ ok: false, error: 'control_surface folder not found in app directory.' });
   const alreadyInstalled = fs.existsSync(dest);
@@ -280,7 +286,7 @@ app.post('/api/save-preferences', (req, res) => {
   // those are preferences learned automatically from conversations.
   const BOUNDARY = '_Set during onboarding. Edit freely._';
   const fs       = require('fs');
-  const mdPath   = path.join(ROOT, 'producer.md');
+  const mdPath   = path.join(DATA_ROOT, 'producer.md');
 
   // Extract learned-preference lines that live below the boundary, if any
   let learnedSection = '';
@@ -420,7 +426,7 @@ wss.on('connection', ws => {
     machineId:           config.machineId,
     bridgeDetected:      bridge.isDetected(),
     onboardingDone:      !!config.onboardingDone,
-    appRoot:             ROOT,
+    appRoot:             INSTALL_ROOT,
   });
 
   ws.on('message', async raw => {
@@ -511,6 +517,11 @@ wss.on('connection', ws => {
 
 server.listen(config.ports.ui, () => {
   console.log(`\n  Addie -> http://localhost:${config.ports.ui}`);
+});
+
+server.on('error', (err) => {
+  console.error('[server] Listen error:', err.message);
+  process.exit(1);
 });
 
 // --- GRACEFUL SHUTDOWN -------------------------------------------------------

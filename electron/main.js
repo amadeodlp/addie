@@ -316,10 +316,14 @@ function startBackendServer(port) {
 
   serverProcess.on('exit', (code) => {
     console.error(`[electron] Server exited with code ${code}`);
-    if (code !== 0 && !quitting && mainWindow) {
+    const windowUp =
+      (mainWindow && !mainWindow.isDestroyed()) ||
+      (loadingWindow && !loadingWindow.isDestroyed());
+    if (code !== 0 && !quitting && windowUp) {
+      closeLoadingWindow();
       dialog.showErrorBox(
         'Addie — Server Error',
-        'The backend server crashed unexpectedly. Please restart Addie.'
+        'The backend server stopped unexpectedly. If this happens on first install, check the log and try again. Please restart Addie.'
       );
     }
   });
